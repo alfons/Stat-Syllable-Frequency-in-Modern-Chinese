@@ -90,7 +90,17 @@
         For the modern writing system Pīnyīn, this shift toward disyllabic words has important implications: it reduces the potential for homophony, clarifies meaning in both spoken and written contexts, and facilitates more precise communication. As Pīnyīn relies on romanization of sounds rather than characters, the prevalence of disyllabic words helps minimize ambiguity, making the system more effective.
     </p>
 
-    <h2>Frequency data input</h2>
+    <h2>Raw Text Input</h2>
+    <p>Paste your half-whitespaced Chinese text below:</p>
+    <p>For example: 从 黑部湖 到 奥穗高岳 ， 地图 上 的 直线 距离 并不 是 太 远 ， 但 全 是 高山 峻岳 ， 行走 起来 有 极大 的 困难 。
+他们 挣扎着 走到 天黑 ， 还 没有 走出 黑部湖 的 范围 。
+当 他们 又 接近 几 间 简陋 的 木屋 ， 在 窗 外 向 内 窥视 之 际 ， 看到 屋 中 的 人 在 看 电视 ， 才 知道 救援 工作 ， 已经 不 劳 他们 费心 ， 早已 全国 轰动 了 。</p>
+    <textarea id="raw-text" placeholder="Paste your half-whitespaced Chinese text here..."></textarea>
+    <button id="convert-btn">Convert to frequency list</button>
+    <textarea id="frequency-output" placeholder="Frequency list will appear here..."></textarea>
+    <button id="load-btn">Load text into analyser</button>
+
+    <h2>Analyser for Frequency Data</h2>
     <p>Paste your word TAB frequency table below, or load one of the sample texts:</p>
 
     <textarea id="input" placeholder="Paste your table here..."></textarea>
@@ -116,7 +126,7 @@
         <p>From the novel 倪匡 - 天人 (Tiānrén by Ní Kuāng)</p>
         <div id="tianren-stats"></div>
         <h3>Dashantou Stats</h3>
-        <p>From a modern web-novel 大山头 - 低俗订阅了 (Dīsú dìngyuè le by Dàshāntóu)</p>
+        <p>From a modern web-novel 大山头 - 低俗订阅了 (Dīsú dìngyuè le by Dàshāntóu)</p>
         <div id="disu-stats"></div>
         <h3>Mandarin Corner Stats</h3>
         <p>From the podcast “China’s Love-Hate Relationship With Dogs” by Mandarin Corner</p>
@@ -232,6 +242,41 @@
 
         document.getElementById('btnCccedict').addEventListener('click', () => {
             document.getElementById('input').value = frequencyDataCCCEDICT;
+        });
+
+        // New functionality for raw text processing
+        document.getElementById('convert-btn').addEventListener('click', () => {
+            const raw = document.getElementById('raw-text').value;
+            if (!raw.trim()) return alert("Please paste some text!");
+
+            // Remove linebreaks by replacing with space
+            // Remove punctuation and symbols (full-width and half-width)
+            const cleaned = raw.replace(/\n/g, ' ')
+                               .replace(/[\p{P}\p{S}]/gu, '')
+                               .trim();
+
+            // Split by whitespace (half-space)
+            const words = cleaned.split(/\s+/).filter(w => w);
+
+            // Count frequencies
+            const freq = {};
+            words.forEach(w => {
+                freq[w] = (freq[w] || 0) + 1;
+            });
+
+            // Generate tab-separated list
+            const list = Object.entries(freq)
+                               .sort((a, b) => b[1] - a[1]) // Optional: sort by frequency descending
+                               .map(([word, count]) => `${word}\t${count}`)
+                               .join('\n');
+
+            document.getElementById('frequency-output').value = list;
+        });
+
+        document.getElementById('load-btn').addEventListener('click', () => {
+            const list = document.getElementById('frequency-output').value;
+            if (!list) return alert("Please convert to frequency list first!");
+            document.getElementById('input').value = list;
         });
 
         // Render all datasets on page load
