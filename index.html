@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Chinese Word Syllable Stats</title>
+    <style>
+        body {
+            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+            max-width: 800px;
+            margin: 40px auto;
+            line-height: 1.6;
+            background: #f9f9f9;
+            color: #333;
+        }
+
+        h1, h2 {
+            color: #222;
+        }
+
+        textarea {
+            width: 100%;
+            height: 150px;
+            padding: 10px;
+            font-size: 14px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            resize: vertical;
+            box-sizing: border-box;
+            margin-bottom: 10px;
+        }
+
+        button {
+            margin: 5px 5px 20px 0;
+            padding: 8px 16px;
+            font-size: 14px;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            transition: background 0.2s;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        .bar-container {
+            display: flex;
+            align-items: center;
+            margin: 5px 0;
+        }
+
+        .bar {
+            height: 20px;
+            background-color: #4a90e2;
+            margin-right: 10px;
+            border-radius: 3px;
+        }
+
+        #stats, #example-stats {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Syllable Frequency and Lexical Patterns in Modern Chinese: Implications for Pīnyīn</h1>
+
+    <h2>Abstract</h2>
+    <p>
+        This exploratory study examines the distribution of word syllable lengths in contemporary Modern Chinese by analyzing
+        frequency data from four sources: Ni Kuang's novel <em>Tianren</em>, a Mandarin Corner podcast about pets in
+        China, the CC-CEDICT dictionary, and a modern web-novel, 大山头 - 低俗订阅了. 
+        
+        Monosyllabic words account for approximately 20–25% of
+        dictionary entries, but dominate actual usage, representing over 50% of words in the novel and podcast corpora.
+        Disyllabic words make up the largest portion in the dictionary (over 50%), while tri- and longer-syllable words
+        are progressively less frequent. These results highlight a significant discrepancy between lexicon composition
+        and real-world language patterns in Modern Chinese, but also hint at a shift towards more frequent use of disyllabic words.
+    </p>
+
+    <h2>Discussion</h2>
+    <p>
+        Disyllabic words are increasingly prevalent in modern Chinese dictionaries, such as CC-CEDICT, and are used more frequently in spoken language, for example in podcasts. Also, usage of disyllabic words is higher in more recent, contemporary novels. This trend likely reflects the need to reduce ambiguity and highlights broader linguistic developments. 
+    </p>
+    <p>
+
+        For the modern writing system Pīnyīn, this shift toward disyllabic words has important implications: it reduces the potential for homophony, clarifies meaning in both spoken and written contexts, and facilitates more precise communication. As Pīnyīn relies on romanization of sounds rather than characters, the prevalence of disyllabic words helps minimize ambiguity, making the system more effective.
+    </p>
+
+    <h2>Frequency data input</h2>
+    <p>Paste your word TAB frequency table below, or load one of the sample texts:</p>
+
+    <textarea id="input" placeholder="Paste your table here..."></textarea>
+    <button onclick="processData()">Calculate Stats</button>
+
+    <h1>Results</h1>
+    <div id="stats"></div>
+
+    <h2>Example sets</h2>
+    <p>Each dataset lists distinct lexical items along with their frequency counts. Words were segmented according to
+        standard word boundaries with the software “Chinese Text Analyser” (MacOS, Copyright © 2014 Imral Software Pty
+        Ltd.), and syllable length is determined by the number of characters in each word.</p>
+
+    <!-- Load buttons -->
+    <button id="btnTianren">Load Tianren</button>
+    <button id="btnMandarin">Load Mandarin Corner</button>
+    <button id="btnDisu">Load 大山头 - 低俗订阅了</button>
+    <button id="btnCccedict">Load CC-CEDICT</button>
+    <br>
+
+    <div id="example-stats">
+        <h3>Tianren Stats</h3>
+        <p>From the novel 倪匡 - 天人 (Tiānrén by Ní Kuāng)</p>
+        <div id="tianren-stats"></div>
+        <h3>Dashantou Stats</h3>
+        <p>From a modern web-novel 大山头 - 低俗订阅了 (Dīsú dìngyuè le by Dàshāntóu)</p>
+        <div id="disu-stats"></div>
+        <h3>Mandarin Corner Stats</h3>
+        <p>From the podcast “China’s Love-Hate Relationship With Dogs” by Mandarin Corner</p>
+        <div id="mandarin-stats"></div>
+        <h3>CC-CEDICT Dictionary Stats</h3>
+        <p>This data looks at the vocabulary in the CC-CEDICT dictionary, with each word set at a frequency of 1.</p>
+        <div id="dict-corpus-stats"></div>
+    </div>
+
+    <!-- Include external JS files -->
+    <script src="frequency_data_tianren.js"></script>
+    <script src="frequency_data_mandarin_corner.js"></script>
+    <script src="frequency_data_disu.js"></script>
+    <script src="frequency_data_cccedict.js"></script>
+
+    <script>
+        // Hardcoded frequency data
+        const asCorpusCounts = {
+            1: 9223,
+            2: 57626,
+            3: 23333,
+            4: 18656,
+            '4+': 4102
+        };
+
+        const tianrenCounts = {
+            1: 45362,
+            2: 29125,
+            3: 1516,
+            4: 517,
+            '4+': 13
+        };
+
+        const mandarinCounts = {
+            1: 2558,
+            2: 1808,
+            3: 134,
+            4: 16,
+            '4+': 2
+        };
+
+        const disuCounts = {
+            1: 97943,
+            2: 69323,
+            3: 4478,
+            4: 1823,
+            '4+': 68
+        };
+
+        // Unified function to render bar graphs
+        function renderBars(counts, containerId) {
+            const total = Object.values(counts).reduce((a, b) => a + b, 0);
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+
+            for (const key of [1, 2, 3, 4, '4+']) {
+                const val = counts[key];
+                const perc = ((val / total) * 100).toFixed(1);
+
+                const barContainer = document.createElement('div');
+                barContainer.className = 'bar-container';
+
+                const bar = document.createElement('div');
+                bar.className = 'bar';
+                bar.style.width = perc + '%';
+
+                const label = document.createElement('span');
+                label.textContent = `${key}-syllable: ${val.toLocaleString()} (${perc}%)`;
+
+                barContainer.appendChild(bar);
+                barContainer.appendChild(label);
+                container.appendChild(barContainer);
+            }
+        }
+
+        // Process textarea data
+        function processData() {
+            const text = document.getElementById('input').value.trim();
+            if (!text) return alert("Please paste or load a table!");
+
+            const lines = text.split('\n');
+            const counts = { 1: 0, 2: 0, 3: 0, 4: 0, '4+': 0 };
+            let total = 0;
+
+            lines.forEach(line => {
+                const [word, freqStr] = line.split('\t');
+                if (!word) return;
+                const freq = freqStr ? parseInt(freqStr, 10) || 1 : 1;
+                const syllables = word.length;
+                if (syllables === 1) counts[1] += freq;
+                else if (syllables === 2) counts[2] += freq;
+                else if (syllables === 3) counts[3] += freq;
+                else if (syllables === 4) counts[4] += freq;
+                else counts['4+'] += freq;
+                total += freq;
+            });
+
+            renderBars(counts, 'stats');
+        }
+
+        // Button event listeners
+        document.getElementById('btnTianren').addEventListener('click', () => {
+            document.getElementById('input').value = frequencyDataTianren;
+        });
+
+        document.getElementById('btnMandarin').addEventListener('click', () => {
+            document.getElementById('input').value = frequencyDataMandarinCorner;
+        });
+
+        document.getElementById('btnDisu').addEventListener('click', () => {
+            document.getElementById('input').value = frequencyDataDisu;
+        });
+
+        document.getElementById('btnCccedict').addEventListener('click', () => {
+            document.getElementById('input').value = frequencyDataCCCEDICT;
+        });
+
+        // Render all datasets on page load
+        window.onload = () => {
+            renderBars(tianrenCounts, 'tianren-stats');
+            renderBars(mandarinCounts, 'mandarin-stats');
+            renderBars(disuCounts, 'disu-stats');
+            renderBars(asCorpusCounts, 'dict-corpus-stats');
+        };
+    </script>
+</body>
+</html>
